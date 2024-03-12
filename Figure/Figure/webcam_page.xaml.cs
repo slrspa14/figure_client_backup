@@ -273,20 +273,11 @@ namespace Figure
         }
         private void Work()
         {
-            switch (work_detail)
+            switch (work_detail[0])
             {
-                case "1/":
-                    if (shape == "Pentagon" && tor == "Red" && cnt == 4)//조건이랑 맞다면
+                case "1":
+                    if(((shape == "Square" || shape == "Circle") && (red == 4 && gre == 1)) || (shape == "Circle" || shape=="Pentagon") && (yel==4 && red==1))
                     {
-                        string message = "2 / Red Square / 2023 - 01 - 23 - 16 - 32 - 12 / 1번라인 / 박철두 / pass";
-                        byte[] data = Encoding.Default.GetBytes(message);
-
-                        start_page.stream = start_page.client.GetStream();
-                        start_page.stream.Write(data, 0, data.Length);
-                    }
-                    else //오류일때 캡처하고 전송하기
-                    {
-                        
                         string save_1 = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"); //캡처한거 저장
                         Cv2.ImWrite("../../" + save_1 + ".png", frame);//파일 이름설정
                         try
@@ -319,6 +310,19 @@ namespace Figure
                             Console.Write(file);
                             System.Windows.MessageBox.Show(file.ToString());
                         }
+                    }
+                    else if ((shape == "Pentagon" && shape == "Triangle") && (blu == 2 && red ==1)//조건이랑 맞다면
+                    {
+                        string message = "2 / Red Square / 2023 - 01 - 23 - 16 - 32 - 12 / 1번라인 / 박철두 / pass";
+                        byte[] data = Encoding.Default.GetBytes(message);
+
+                        start_page.stream = start_page.client.GetStream();
+                        start_page.stream.Write(data, 0, data.Length);
+                    }
+                    else //오류일때 캡처하고 전송하기
+                    {
+                        
+                        
                         
                     }
                     break;
