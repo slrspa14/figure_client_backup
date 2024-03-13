@@ -22,10 +22,10 @@ namespace Figure
         DispatcherTimer timer;
         bool is_initCam, is_initTimer;
         string save, tor;
-        string work_detail = start_page.work_detail;//전 페이지에서 받은 작업내용 사용하려고
+        string[] work_detail = start_page.work_detail;//전 페이지에서 받은 작업내용 사용하려고
         string shape = "unidentified";
         int cnt = 0;
-
+        int yel = 0, gre = 0, red = 0, blu = 0;
         //public NetworkStream stream;
         //public TcpClient client;
         public webcam_page()
@@ -190,7 +190,7 @@ namespace Figure
             Cv2.FindContours(mask3, out var contours3, out var hierarchy3, RetrievalModes.Tree, ContourApproximationModes.ApproxSimple);
             Cv2.FindContours(mask4, out var contours4, out var hierarchy4, RetrievalModes.Tree, ContourApproximationModes.ApproxSimple);
 
-            int yel = 0, gre = 0, red = 0, blu = 0;
+            //int yel = 0, gre = 0, red = 0, blu = 0;
 
             foreach (var c in contours1)
             {
@@ -208,7 +208,6 @@ namespace Figure
                     Cv2.PutText(frame, pnt + "Yellow" + shape, new Point(cx, cy), HersheyFonts.HersheySimplex, 0.5, Scalar.Yellow, 2);
                     //화면에 표기 출력할놈 //텍스트           //좌표            //폰트                             글자색
                     yel++;
-                    cnt++;//개수 구별용
                 }
             }
             foreach (var c in contours2)
@@ -226,7 +225,6 @@ namespace Figure
                     tor = "Green_" + shape;
                     Cv2.PutText(frame, pnt + "Green " + shape, new Point(cx, cy), HersheyFonts.HersheySimplex, 0.5, Scalar.Green, 2);
                     gre++;
-                    cnt++;//개수 구별용
                 }
             }
             foreach (var c in contours3)
@@ -244,7 +242,6 @@ namespace Figure
                     tor = pnt + "Red_" + shape;
                     Cv2.PutText(frame, pnt + " Red " + shape, new Point(cx, cy), HersheyFonts.HersheySimplex, 0.5, Scalar.Red, 2);
                     red++;
-                    cnt++;//개수 구별용
                 }
             }
             foreach (var c in contours4)
@@ -265,7 +262,6 @@ namespace Figure
                     tor = "Blue_" + shape;
                     Cv2.PutText(frame, pnt + " Blue " + shape, new Point(cx, cy), HersheyFonts.HersheySimplex, 0.5, Scalar.Blue, 2);
                     blu++;//색
-                    cnt++;//개수 구별용
                 }
 
             }
@@ -273,77 +269,175 @@ namespace Figure
         }
         private void Work()
         {
-            switch (work_detail[0])
+            string date = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"); //캡처한거 저장
+            while (true)
             {
-                case "1":
-                    if(((shape == "Square" || shape == "Circle") && (red == 4 && gre == 1)) || (shape == "Circle" || shape=="Pentagon") && (yel==4 && red==1))
-                    {
-                        string save_1 = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss"); //캡처한거 저장
-                        Cv2.ImWrite("../../" + save_1 + ".png", frame);//파일 이름설정
-                        try
-                        {
-                            string img_message = "4/오류 사진 보냅니다.";
-                            //stream null값인지 확인해보기
-                            byte[] errorReport = Encoding.Default.GetBytes(img_message);
-                            start_page.stream.Write(errorReport, 0, errorReport.Length);//4/오류사진
+                switch (work_detail[0])
+                {
+                    case "1":
+                        if (((shape == "Square" || shape == "Circle") && (red == 4 && gre == 1)) || (shape == "Circle" || shape == "Pentagon") && (yel == 4 && red == 1))
+                        {   // 여기가 오류
+                            string save_1 = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss");
+                            Cv2.ImWrite("../../" + save_1 + ".png", frame);
+                            try
+                            {
+                                string img_message = "4/오류 사진 보냅니다.";
+                                //stream null값인지 확인해보기
+                                byte[] errorReport = Encoding.Default.GetBytes(img_message);
+                                start_page.stream.Write(errorReport, 0, errorReport.Length);//4/오류사진
 
-                            //데이터 크기 보내고
-                            byte[] size = new byte[4];
-                            FileStream filestr = new FileStream("../../" + save_1 + ".png", FileMode.Open, FileAccess.Read);
-                            int fileLength = (int)filestr.Length;
-                            size = Encoding.Default.GetBytes(fileLength.ToString());
-                            //string a = fileLength.ToString();
-                            //size = Encoding.Default.GetBytes(a);
-                            start_page.stream.Write(size, 0, 4);
-                            MessageBox.Show("송신 데이터 크기 : " + BitConverter.ToInt32(size, 0).ToString());
+                                //데이터 크기 보내고
+                                byte[] size = new byte[4];
+                                FileStream filestr = new FileStream("../../" + save_1 + ".png", FileMode.Open, FileAccess.Read);
+                                int fileLength = (int)filestr.Length;
+                                size = Encoding.Default.GetBytes(fileLength.ToString());
+                                //string a = fileLength.ToString();
+                                //size = Encoding.Default.GetBytes(a);
+                                start_page.stream.Write(size, 0, 4);
+                                MessageBox.Show("송신 데이터 크기 : " + BitConverter.ToInt32(size, 0).ToString());
 
-                            byte[] imageData = new byte[fileLength];
+                                byte[] imageData = new byte[fileLength];
 
-                            filestr.Read(imageData, 0, imageData.Length);//파일읽어서 배열에 넣고
-                            start_page.stream.Write(imageData, 0, imageData.Length);//송신
+                                filestr.Read(imageData, 0, imageData.Length);//파일읽어서 배열에 넣고
+                                start_page.stream.Write(imageData, 0, imageData.Length);//송신
 
-                            MessageBox.Show("파일전송완료");
-                            filestr.Close();//닫기추가
+                                MessageBox.Show("파일전송완료");
+                                filestr.Close();//닫기추가
+
+                                //--------------------------------------------
+                                //3 / blue Square / 2023 - 02 - 12 - 16 - 32 - 12 / 1번라인 / 박철두 / fail
+                                //string msg = "5/" + tor + shape + "/" + save_1 + "/2번라인/박철두/fail"; 
+                            }
+                            catch (SocketException file)
+                            {
+                                Console.Write(file);
+                                MessageBox.Show(file.ToString());
+                            }
                         }
-                        catch (SocketException file)
+                        else if (((shape == "Pentagon" || shape == "Triangle") && (blu == 4 && yel == 1)))
                         {
-                            Console.Write(file);
-                            System.Windows.MessageBox.Show(file.ToString());
+                            // 여기가 정상
+                            string save_1 = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss");
+                            string message = "2 / Red Square / " + save_1 + " / 1번라인 / 박철두 / pass";
+                            byte[] data = Encoding.Default.GetBytes(message);
+
+                            start_page.stream = start_page.client.GetStream();
+                            start_page.stream.Write(data, 0, data.Length);
                         }
-                    }
-                    else if ((shape == "Pentagon" && shape == "Triangle") && (blu == 2 && red ==1)//조건이랑 맞다면
-                    {
-                        string message = "2 / Red Square / 2023 - 01 - 23 - 16 - 32 - 12 / 1번라인 / 박철두 / pass";
-                        byte[] data = Encoding.Default.GetBytes(message);
+                        break;
 
-                        start_page.stream = start_page.client.GetStream();
-                        start_page.stream.Write(data, 0, data.Length);
-                    }
-                    else //오류일때 캡처하고 전송하기
-                    {
-                        
-                        
-                        
-                    }
-                    break;
+                    case "2":
+                        if (((shape == "Pentagon" && shape == "Triangle") && (blu == 2 && red == 1)) || (shape == "Circle" || shape == "Pentagon") && (yel == 4 && red == 1))
+                        {   // 여기가 오류
+                            string save_1 = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss");
+                            Cv2.ImWrite("../../" + save_1 + ".png", frame);
+                            try
+                            {
+                                string img_message = "4/오류 사진 보냅니다.";
+                                //stream null값인지 확인해보기
+                                byte[] errorReport = Encoding.Default.GetBytes(img_message);
+                                start_page.stream.Write(errorReport, 0, errorReport.Length);//4/오류사진
 
-                case "2/":
+                                //데이터 크기 보내고
+                                byte[] size = new byte[4];
+                                FileStream filestr = new FileStream("../../" + save_1 + ".png", FileMode.Open, FileAccess.Read);
+                                int fileLength = (int)filestr.Length;
+                                size = Encoding.Default.GetBytes(fileLength.ToString());
+                                //string a = fileLength.ToString();
+                                //size = Encoding.Default.GetBytes(a);
+                                start_page.stream.Write(size, 0, 4);
+                                MessageBox.Show("송신 데이터 크기 : " + BitConverter.ToInt32(size, 0).ToString());
 
-                    break;
+                                byte[] imageData = new byte[fileLength];
 
-                case "3/":
+                                filestr.Read(imageData, 0, imageData.Length);//파일읽어서 배열에 넣고
+                                start_page.stream.Write(imageData, 0, imageData.Length);//송신
 
-                    break;
+                                MessageBox.Show("파일전송완료");
+                                filestr.Close();//닫기추가
 
-                case "4/":
+                                //--------------------------------------------
+                                //3 / blue Square / 2023 - 02 - 12 - 16 - 32 - 12 / 1번라인 / 박철두 / fail
+                                string msg = "5/" + tor + shape + "/" + save_1 + "/2번라인/박철두/fail";
+                                byte[] fail_msg = new byte[128];
+                                fail_msg = Encoding.Default.GetBytes(msg);
+                                start_page.stream.Write(fail_msg, 0, fail_msg.Length);
+                            }
+                            catch (SocketException file)
+                            {
+                                Console.Write(file);
+                                MessageBox.Show(file.ToString());
+                            }
+                        }
+                        else if (((shape == "Square" || shape == "Circle") && (red == 4 && gre == 1)))
+                        {
+                            // 여기가 정상
+                            string save_1 = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss");
+                            string message = "2 / Red Square / " + save_1 + " / 1번라인 / 박철두 / pass";
+                            byte[] data = Encoding.Default.GetBytes(message);
 
-                    break;
+                            start_page.stream = start_page.client.GetStream();
+                            start_page.stream.Write(data, 0, data.Length);
+                        }
+                        break;
+                    case "3":
+                        if (((shape == "Pentagon" && shape == "Triangle") && (blu == 2 && red == 1)) || ((shape == "Square" || shape == "Circle") && (red == 4 && gre == 1)))
+                        {   
+                            // 여기가 오류
+                            string save_1 = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss");
+                            Cv2.ImWrite("../../" + save_1 + ".png", frame);
+                            try
+                            {
+                                string img_message = "4/오류 사진 보냅니다.";
+                                //stream null값인지 확인해보기
+                                byte[] errorReport = Encoding.Default.GetBytes(img_message);
+                                start_page.stream.Write(errorReport, 0, errorReport.Length);//4/오류사진
 
-                default:
-                    break;
+                                //데이터 크기 보내고
+                                byte[] size = new byte[4];
+                                FileStream filestr = new FileStream("../../" + save_1 + ".png", FileMode.Open, FileAccess.Read);
+                                int fileLength = (int)filestr.Length;
+                                size = Encoding.Default.GetBytes(fileLength.ToString());
+                                //string a = fileLength.ToString();
+                                //size = Encoding.Default.GetBytes(a);
+                                start_page.stream.Write(size, 0, 4);
+                                MessageBox.Show("송신 데이터 크기 : " + BitConverter.ToInt32(size, 0).ToString());
+
+                                byte[] imageData = new byte[fileLength];
+
+                                filestr.Read(imageData, 0, imageData.Length);//파일읽어서 배열에 넣고
+                                start_page.stream.Write(imageData, 0, imageData.Length);//송신
+
+                                MessageBox.Show("파일전송완료");
+                                filestr.Close();//닫기추가
+
+                                //--------------------------------------------
+                                //3 / blue Square / 2023 - 02 - 12 - 16 - 32 - 12 / 1번라인 / 박철두 / fail
+                                //string msg = "5/" + tor + shape + "/" + save_1 + "/2번라인/박철두/fail"; 
+                            }
+                            catch (SocketException file)
+                            {
+                                Console.Write(file);
+                                MessageBox.Show(file.ToString());
+                            }
+                        }
+
+                        else if (((shape == "Circle" || shape == "Pentagon") && (yel == 4 && red == 1)))
+                        {
+                            // 여기가 정상
+                            string save_1 = DateTime.Now.ToString("yyyy-MM-dd-hh-mm-ss");
+                            string message = "2 / Red Square / " + save_1 + " / 1번라인 / 박철두 / pass";
+                            byte[] data = Encoding.Default.GetBytes(message);
+
+                            start_page.stream = start_page.client.GetStream();
+                            start_page.stream.Write(data, 0, data.Length);
+                        }
+                        break;
+                    default:
+                        break;
+                }
             }
-        }
 
-        
+        }
     }
 }

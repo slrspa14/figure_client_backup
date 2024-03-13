@@ -15,7 +15,7 @@ namespace WPF
         }
         private void windows_loaded(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("클라이언트 접속");
+            MessageBox.Show("서버접속");
         }
     }
 }

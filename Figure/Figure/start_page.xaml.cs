@@ -15,7 +15,7 @@ namespace Figure
     {
         static public NetworkStream stream;
         static public TcpClient client;
-        static public string work_detail;
+        static public string[] work_detail = new string[128];
         public start_page()
         {
             InitializeComponent();
@@ -39,7 +39,8 @@ namespace Figure
 
                 //0311
                 stream.Read(data, 0, data.Length);//작업내용 받을때까지 대기하고 버튼 안보이게
-                work_detail = Encoding.Default.GetString(data); //작업내용
+                string work_divide = Encoding.Default.GetString(data); //작업내용
+                work_detail = work_divide.Split('/');//작업내용
                 start_btn.Visibility = Visibility.Visible;//작업내용 받고 버튼 보이게 하고
             }
             catch (SocketException ex)
